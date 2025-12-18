@@ -1,0 +1,354 @@
+Below is a **clean, strict, AI-consumable Product Requirements Document (PRD)**.
+It is intentionally **explicit, unambiguous, and implementation-oriented**, so it can be **directly fed to an AI code generator** to create the full web application without additional clarification.
+
+No commentary, no explanations outside the spec.
+
+---
+
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+**Project:** Equipment Management Web Application
+**Version:** 1.0
+**Target Output:** Fully functional web application
+**Architecture:** React SPA + Node.js (Express) API + MySQL database
+
+---
+
+## 1. PRODUCT OVERVIEW
+
+Build a single-page web application that allows users to manage equipment records.
+The application must support full CRUD (Create, Read, Update, Delete) operations on equipment data using a REST API and a MySQL database.
+
+The system is **internal-use**, does **not** require authentication, and prioritizes clean code, correctness, and maintainability.
+
+---
+
+## 2. FUNCTIONAL REQUIREMENTS
+
+### 2.1 Core Features
+
+The application MUST allow users to:
+
+1. View all equipment in a table
+2. Add new equipment
+3. Edit existing equipment
+4. Delete equipment
+
+### 2.2 Equipment Attributes
+
+Each equipment record MUST contain:
+
+| Field             | Type      | Required | Notes                               |
+| ----------------- | --------- | -------- | ----------------------------------- |
+| id                | integer   | yes      | Auto-generated primary key          |
+| name              | string    | yes      | Max 255 chars                       |
+| type              | enum      | yes      | Machine, Vessel, Tank, Mixer        |
+| status            | enum      | yes      | Active, Inactive, Under Maintenance |
+| last_cleaned_date | date      | no       | Format YYYY-MM-DD                   |
+| created_at        | timestamp | yes      | Auto-generated                      |
+| updated_at        | timestamp | yes      | Auto-generated                      |
+
+---
+
+## 3. FRONTEND REQUIREMENTS
+
+### 3.1 Technology
+
+* React (Create React App or equivalent)
+* JavaScript (no TypeScript required)
+* Fetch API or Axios
+* Basic CSS or Bootstrap
+* No authentication
+* No external UI frameworks required
+
+### 3.2 UI Structure
+
+The frontend MUST contain:
+
+#### 3.2.1 Equipment Table
+
+* Displays all equipment records
+* Columns:
+
+  * Name
+  * Type
+  * Status
+  * Last Cleaned Date
+  * Actions (Edit, Delete)
+* Data fetched from backend API on page load
+
+#### 3.2.2 Equipment Form
+
+* Used for **Add** and **Edit**
+* Fields:
+
+  * Name (text input)
+  * Type (dropdown)
+  * Status (dropdown)
+  * Last Cleaned Date (date picker)
+* Submit button disabled while request is in progress
+
+#### 3.2.3 User Feedback
+
+* Show success message on successful create/update/delete
+* Show error message on API failure or validation error
+
+---
+
+## 4. FRONTEND VALIDATION RULES
+
+Validation MUST be implemented on the client:
+
+| Field             | Rule                                   |
+| ----------------- | -------------------------------------- |
+| Name              | Required, trimmed, 1–255 characters    |
+| Type              | Required, must be one of defined enums |
+| Status            | Required, must be one of defined enums |
+| Last Cleaned Date | Optional, valid date, not in future    |
+
+Invalid input MUST block submission.
+
+---
+
+## 5. BACKEND REQUIREMENTS
+
+### 5.1 Technology
+
+* Node.js (>=16)
+* Express.js
+* MySQL 8.x
+* Sequelize ORM (preferred) OR mysql2 with parameterized queries
+* dotenv for environment variables
+* express-validator or Joi for validation
+* CORS enabled for frontend origin
+
+---
+
+## 6. API SPECIFICATION
+
+### Base URL
+
+`/api`
+
+---
+
+### 6.1 GET /api/equipment
+
+**Purpose:** Fetch all equipment
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Mixer A1",
+      "type": "Mixer",
+      "status": "Active",
+      "last_cleaned_date": "2025-12-15",
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
+    }
+  ]
+}
+```
+
+---
+
+### 6.2 POST /api/equipment
+
+**Purpose:** Create new equipment
+
+**Request Body:**
+
+```json
+{
+  "name": "string",
+  "type": "Machine|Vessel|Tank|Mixer",
+  "status": "Active|Inactive|Under Maintenance",
+  "last_cleaned_date": "YYYY-MM-DD"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "data": {
+    "id": 2
+  }
+}
+```
+
+**Response (400):**
+
+```json
+{
+  "error": "Validation failed"
+}
+```
+
+---
+
+### 6.3 PUT /api/equipment/:id
+
+**Purpose:** Update existing equipment
+
+**Request Body:** Same as POST (all fields optional but validated)
+
+**Response (200):**
+
+```json
+{
+  "data": "updated"
+}
+```
+
+**Response (404):**
+
+```json
+{
+  "error": "Equipment not found"
+}
+```
+
+---
+
+### 6.4 DELETE /api/equipment/:id
+
+**Purpose:** Delete equipment
+
+**Response (204):**
+No content
+
+**Response (404):**
+
+```json
+{
+  "error": "Equipment not found"
+}
+```
+
+---
+
+## 7. DATABASE REQUIREMENTS (MYSQL)
+
+### 7.1 Table Definition
+
+```sql
+CREATE TABLE equipment (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  type ENUM('Machine','Vessel','Tank','Mixer') NOT NULL,
+  status ENUM('Active','Inactive','Under Maintenance') NOT NULL DEFAULT 'Active',
+  last_cleaned_date DATE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## 8. BACKEND VALIDATION RULES
+
+Backend MUST enforce the same validation as frontend.
+
+Invalid requests MUST return HTTP 400.
+
+---
+
+## 9. ERROR HANDLING
+
+* All API errors MUST return JSON
+* Internal errors MUST return HTTP 500
+* Validation errors MUST return HTTP 400
+* Missing records MUST return HTTP 404
+
+---
+
+## 10. PROJECT STRUCTURE REQUIREMENTS
+
+### Backend
+
+```
+backend/
+├── src/
+│   ├── index.js
+│   ├── routes/
+│   │   └── equipment.routes.js
+│   ├── controllers/
+│   │   └── equipment.controller.js
+│   ├── models/
+│   │   └── equipment.model.js
+│   ├── validators/
+│   │   └── equipment.validator.js
+│   └── config/
+│       └── db.js
+├── package.json
+├── .env.example
+```
+
+### Frontend
+
+```
+frontend/
+├── src/
+│   ├── App.js
+│   ├── api/
+│   │   └── equipmentApi.js
+│   ├── components/
+│   │   ├── EquipmentTable.jsx
+│   │   ├── EquipmentForm.jsx
+│   │   └── DeleteConfirm.jsx
+│   └── styles/
+├── package.json
+```
+
+---
+
+## 11. ENVIRONMENT VARIABLES
+
+Backend MUST read:
+
+```
+PORT=4000
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=
+DB_PASSWORD=
+DB_NAME=equipment_db
+FRONTEND_URL=http://localhost:3000
+```
+
+---
+
+## 12. NON-REQUIREMENTS (EXPLICITLY EXCLUDED)
+
+* Authentication or login
+* Role management
+* Unit tests
+* Deployment to cloud
+* Advanced UI/UX design
+* Pagination or search (optional only if trivial)
+
+---
+
+## 13. ACCEPTANCE CRITERIA
+
+The application is considered complete when:
+
+* All CRUD operations work end-to-end
+* Data persists in MySQL
+* Frontend validations prevent bad input
+* Backend validations protect API
+* Application runs locally without errors
+* Code is clean and modular
+
+---
+
+## 14. FINAL INSTRUCTION TO AI
+
+> Generate the complete frontend and backend codebase according to this PRD.
+> Ensure all files, APIs, validations, database schema, and UI behaviors strictly follow the specification above.
+> Output production-ready code only.
