@@ -1,18 +1,39 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, date, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const equipmentTypeEnum = ["Machine", "Vessel", "Tank", "Mixer"] as const;
+export const equipmentStatusEnum = ["Active", "Inactive", "Under Maintenance"] as const;
+
+export type EquipmentType = (typeof equipmentTypeEnum)[number];
+export type EquipmentStatus = (typeof equipmentStatusEnum)[number];
+
+export const equipment = pgTable("equipment", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: text("type").$type<EquipmentType>().notNull(),
+  status: text("status").$type<EquipmentStatus>().notNull().default("Active"),
+  lastCleanedDate: date("last_cleaned_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertEquipmentSchema = createInsertSchema(equipment).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Name is required").max(255, "Name must be 255 characters or less").transform(s => s.trim()),
+  type: z.enum(equipmentTypeEnum, { errorMap: () => ({ message: "Type is required" }) }),
+  status: z.enum(equipmentStatusEnum, { errorMap: () => ({ message: "Status is required" }) }),
+  lastCleanedDate: z.string().nullable().optional().refine((val) => {
+    if (!val) return true;
+    const date = new Date(val);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return date <= today;
+  }, { message: "Last cleaned date cannot be in the future" }),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
+export type Equipment = typeof equipment.$inferSelect;
