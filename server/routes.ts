@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { body, param, validationResult } from "express-validator";
 import { storage } from "./storage";
@@ -47,10 +47,10 @@ const idValidation = [
 ];
 
 // Helper to check validation results
-function handleValidationErrors(req: any, res: any): boolean {
+function handleValidationErrors(req: Request, res: Response): boolean {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map((e: any) => e.msg).join(", ");
+    const errorMessages = errors.array().map((e) => e.msg).join(", ");
     res.status(400).json({ error: `Validation failed: ${errorMessages}` });
     return true;
   }
