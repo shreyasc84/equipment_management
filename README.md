@@ -69,10 +69,14 @@ mysql -u root -pYourPassword < setup-db.sql
 Create a `.env` file in the root directory:
 
 ```env
-DATABASE_URL=mysql://root:Shresql@localhost:3306/equipment_app
+DATABASE_URL=mysql://root:YOUR_MYSQL_PASSWORD@localhost:3306/equipment_app
 ```
 
-**Note**: Update the username, password, and host as per your MySQL configuration.
+**Note**: 
+- Replace `YOUR_MYSQL_PASSWORD` with your actual MySQL password
+- Replace `root` with your MySQL username if different
+- Update the host if MySQL is running on a different server
+- **Never commit `.env` file to version control** (it's already in `.gitignore`)
 
 ### 5. Start the Development Server
 
