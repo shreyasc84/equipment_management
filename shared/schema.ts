@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, date, timestamp } from "drizzle-orm/pg-core";
+import { mysqlTable, serial, varchar, date, timestamp } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,11 +8,11 @@ export const equipmentStatusEnum = ["Active", "Inactive", "Under Maintenance"] a
 export type EquipmentType = (typeof equipmentTypeEnum)[number];
 export type EquipmentStatus = (typeof equipmentStatusEnum)[number];
 
-export const equipment = pgTable("equipment", {
+export const equipment = mysqlTable("equipment", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  type: text("type").$type<EquipmentType>().notNull(),
-  status: text("status").$type<EquipmentStatus>().notNull().default("Active"),
+  type: varchar("type", { length: 100 }).$type<EquipmentType>().notNull(),
+  status: varchar("status", { length: 100 }).$type<EquipmentStatus>().notNull().default("Active"),
   lastCleanedDate: date("last_cleaned_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

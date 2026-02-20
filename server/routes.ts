@@ -62,7 +62,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // GET /api/equipment - Fetch all equipment
-  app.get("/api/equipment", async (req, res) => {
+  app.get("/api/equipment", async (req: Request, res: Response) => {
     try {
       const equipmentList = await storage.getAllEquipment();
       res.json({ data: equipmentList });
@@ -73,7 +73,7 @@ export async function registerRoutes(
   });
 
   // POST /api/equipment - Create new equipment
-  app.post("/api/equipment", equipmentValidation, async (req, res) => {
+  app.post("/api/equipment", equipmentValidation, async (req: Request, res: Response) => {
     try {
       // Check express-validator errors first
       if (handleValidationErrors(req, res)) return;
@@ -94,7 +94,7 @@ export async function registerRoutes(
   });
 
   // PUT /api/equipment/:id - Update existing equipment
-  app.put("/api/equipment/:id", [...idValidation, ...equipmentValidation], async (req, res) => {
+  app.put("/api/equipment/:id", [...idValidation, ...equipmentValidation], async (req: Request, res: Response) => {
     try {
       // Check express-validator errors first
       if (handleValidationErrors(req, res)) return;
@@ -129,7 +129,7 @@ export async function registerRoutes(
   });
 
   // DELETE /api/equipment/:id - Delete equipment
-  app.delete("/api/equipment/:id", idValidation, async (req, res) => {
+  app.delete("/api/equipment/:id", idValidation, async (req: Request, res: Response) => {
     try {
       // Check express-validator errors first
       if (handleValidationErrors(req, res)) return;
